@@ -34,11 +34,11 @@ app.post('/upload', (req, res, next) => {
 	 var dataToSend;
 
 	// clean zombie resources
-	exec('rm ' + req.body.filenamelast + ' *_DONE.jpeg', {
+	exec('rm a_DONE.jpeg', {
 		cwd: `${__dirname}/public`
 	});
  
-	 imageFile.mv(`${__dirname}/public/${req.body.filename}.jpeg`, err => {
+	 imageFile.mv(`${__dirname}/public/a.jpeg`, err => {
 		 if (err) {
 			 return res.status(500).send(err);
 		 }
@@ -46,7 +46,7 @@ app.post('/upload', (req, res, next) => {
  
  
 	 // spawn new child process
-	 const python = exec('python3 model.py ' + `${__dirname}/public/${req.body.filename}.jpeg`, {
+	 const python = exec('python3 model.py ' + `${__dirname}/public/a.jpeg`, {
 		 cwd: './models/xrayModel'
 	 });
 
@@ -58,13 +58,13 @@ app.post('/upload', (req, res, next) => {
 	 // handle response and intermediate stage resource cleansing
 	 python.on('close', (code) => {
 		 console.log(dataToSend)
-		 imageFile.mv(`${__dirname}/public/${req.body.filename}_DONE.jpeg`, err => {
+		 imageFile.mv(`${__dirname}/public/a_DONE.jpeg`, err => {
 			if (err) {
 				return res.status(500).send(err);
 			}
 		 });
-		 res.json({ name: `${req.body.filename}.jpeg`, file: `public/${req.body.filename}_DONE.jpeg`, data: dataToSend });
-		 exec(`rm ${__dirname}/public/${req.body.filename}.jpeg`, {
+		 res.json({ name: `a.jpeg`, file: `public/a_DONE.jpeg`, data: dataToSend });
+		 exec(`rm ${__dirname}/public/$a.jpeg`, {
 			cwd: `${__dirname}/public`
 		 });
 	 });
