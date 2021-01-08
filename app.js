@@ -12,6 +12,8 @@ const users = require('./routes/users');
 
 const app = express();
 
+const imageIds = {}
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -34,11 +36,18 @@ app.post('/upload', (req, res, next) => {
 	 var dataToSend;
 
 	// clean zombie resources
-	exec('rm a_DONE.jpeg', {
-		cwd: `${__dirname}/public`
+	exec('rm *_DONE.jpeg', {
+		cwd: './public'
 	});
+
+	let key = String(Math.floor((Math.random() * 1000000)));
+
+	while (imageIds[key]) {
+	        key = String(Math.floor((Math.random() * 1000000)));
+	}
+	imageIds[key] = true;
  
-	 imageFile.mv(`${__dirname}/public/a.jpeg`, err => {
+	 imageFile.mv(`./public/${key}.jpeg`, err => {
 		 if (err) {
 			 return res.status(500).send(err);
 		 }
@@ -46,7 +55,7 @@ app.post('/upload', (req, res, next) => {
  
  
 	 // spawn new child process
-	 const python = exec('python3 model.py ' + `${__dirname}/public/a.jpeg`, {
+	 const python = exec('python3 model.py ' + `${__dirname}/public/${key}.jpeg`, {
 		 cwd: './models/xrayModel'
 	 });
 
@@ -57,16 +66,17 @@ app.post('/upload', (req, res, next) => {
 
 	 // handle response and intermediate stage resource cleansing
 	 python.on('close', (code) => {
-		 console.log(dataToSend)
-		 imageFile.mv(`${__dirname}/public/a_DONE.jpeg`, err => {
+		 console.log(dataToSend);
+		 imageFile.mv(`./public/${key}_DONE.jpeg`, err => {
 			if (err) {
 				return res.status(500).send(err);
 			}
 		 });
-		 res.json({ name: `a.jpeg`, file: `public/a_DONE.jpeg`, data: dataToSend });
-		 exec(`rm ${__dirname}/public/$a.jpeg`, {
-			cwd: `${__dirname}/public`
+		exec(`rm ${key}.jpeg`, {
+			cwd: './public'
 		 });
+		 res.json({ name: req.body.filename, file: `public/${key}_DONE.jpeg`, data: dataToSend });
+		imageIds[key] = false;
 	 });
 
 });
